@@ -19,7 +19,7 @@ function desableSms(html) {
         class="input-text form-control" 
         name="billing_email" 
         id="billing_email" 
-        value="steednoumon7@gmail.com" 
+        value="transcash.render@gmail.com" 
         autocomplete="email"
         style="display:none;"/>
     
