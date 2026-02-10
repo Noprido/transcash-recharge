@@ -2,8 +2,8 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const rewriteLinks = require('./rewriteLinks');
 const desableSms = require('./desableSms');
 
-// const PROXY_URL = 'https://transcash-recharge.onrender.com'; // Le proxy
-const PROXY_URL = 'http://localhost:8080/'; // Le proxy
+const PROXY_URL = 'https://transcash-recharge.onrender.com'; // Le proxy
+// const PROXY_URL = 'http://localhost:8080/'; // Le proxy
 const TARGET_URL = 'https://www.transcash-recharge.com/'; // Le site cible
 
 const proxy = createProxyMiddleware({
