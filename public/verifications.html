@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vérifications — Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Anybody:wght@300;400;600;800&family=DM+Mono:wght@300;400;500&display=swap');
+
+:root {
+  --bg:      #f5f2ee;
+  --surface: #ffffff;
+  --ink:     #1a1410;
+  --muted:   #8a7f76;
+  --border:  #e0d8d0;
+  --accent:  #c84b2f;
+  --accent2: #2f6bc8;
+  --green:   #2a7a4b;
+  --row-odd: #faf8f5;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  background: var(--ink);
+  padding: 28px 40px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+header h1 {
+  font-family: 'Anybody', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.01em;
+  line-height: 1;
+}
+
+header h1 span {
+  color: var(--accent);
+}
+
+#total-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 40px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.search-wrap svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+#search {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .2s;
+}
+#search:focus { border-color: var(--accent); }
+
+.filter-group {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+
+.filter-group label {
+  font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase;
+}
+
+select, input[type="date"] {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+select:focus, input[type="date"]:focus { border-color: var(--accent); }
+
+.btn-reset {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .04em;
+}
+.btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-export {
+  padding: 8px 16px;
+  background: var(--ink);
+  border: none;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: #fff;
+  cursor: pointer;
+  transition: background .2s;
+  letter-spacing: .04em;
+}
+.btn-export:hover { background: var(--accent); }
+
+/* ── Résultats info ── */
+.results-info {
+  padding: 10px 40px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+/* ── Table ── */
+.table-wrap {
+  padding: 0 40px 40px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+thead tr {
+  background: var(--ink);
+}
+
+th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #aaa;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: color .2s;
+}
+th:hover { color: #fff; }
+th .sort-icon { margin-left: 4px; opacity: .4; }
+th.active .sort-icon { opacity: 1; color: var(--accent); }
+
+td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:nth-child(odd) td { background: var(--row-odd); }
+tr:hover td { background: #f0ebe4 !important; }
+
+.code-cell {
+  font-size: 12px;
+  letter-spacing: .05em;
+  color: var(--accent2);
+}
+
+.date-cell { color: var(--muted); font-size: 11px; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state p { margin-top: 8px; font-size: 12px; }
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 40px;
+}
+
+.page-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .2s;
+}
+.page-btn:hover { border-color: var(--accent); color: var(--accent); }
+.page-btn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.page-btn:disabled { opacity: .3; cursor: default; pointer-events: none; }
+
+/* ── Cards mobile ── */
+.cards-wrap { display: none; padding: 0 16px 32px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 10px;
+  animation: fadeIn .2s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+.card-name {
+  font-family: 'Anybody', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.card-datetime {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+.card-email {
+  font-size: 12px;
+  color: var(--accent2);
+  margin-bottom: 12px;
+  word-break: break-all;
+}
+.card-codes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.card-code-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.card-code-label {
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.card-code-value {
+  font-size: 13px;
+  letter-spacing: .06em;
+  color: var(--accent2);
+  font-weight: 500;
+}
+.card-index {
+  display: inline-block;
+  background: var(--ink);
+  color: #fff;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  header { padding: 18px 16px; flex-direction: column; align-items: flex-start; gap: 10px; }
+  header h1 { font-size: 20px; }
+  .toolbar { padding: 14px 16px; gap: 10px; }
+  .search-wrap { min-width: 100%; }
+  .filter-group { width: 100%; }
+  .filter-group input[type="date"] { flex: 1; min-width: 0; }
+  .btn-reset, .btn-export { flex: 1; text-align: center; padding: 10px; }
+  .results-info { padding: 8px 16px; }
+
+  /* Cacher le tableau, afficher les cartes */
+  .table-wrap { display: none; }
+  .cards-wrap { display: block; }
+
+  .pagination { padding: 10px 16px 24px; flex-wrap: wrap; }
+  .page-btn { width: 38px; height: 38px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Vérifications <span>—</span> Dashboard</h1>
+  </div>
+  <div id="total-badge">0 entrée(s)</div>
+</header>
+
+<div class="toolbar">
+  <!-- Recherche -->
+  <div class="search-wrap">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input id="search" type="text" placeholder="Rechercher nom, email, code…" />
+  </div>
+
+  <!-- Filtre date -->
+  <div class="filter-group">
+    <label>Du</label>
+    <input type="date" id="date-from" />
+    <label>Au</label>
+    <input type="date" id="date-to" />
+  </div>
+
+  <button class="btn-reset" onclick="resetFilters()">Réinitialiser</button>
+  <button class="btn-export" onclick="exportCSV()">Exporter CSV</button>
+</div>
+
+<div class="results-info" id="results-info">Chargement…</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th onclick="sortBy('nomprenom')">Nom & Prénom <span class="sort-icon" id="sort-nomprenom">↕</span></th>
+        <th onclick="sortBy('email')">Email <span class="sort-icon" id="sort-email">↕</span></th>
+        <th onclick="sortBy('montant')">Montant <span class="sort-icon" id="sort-montant">↕</span></th>
+        <th>Code ticket</th>
+        <th onclick="sortBy('date')">Date <span class="sort-icon" id="sort-date">↕</span></th>
+        <th onclick="sortBy('heure')">Heure <span class="sort-icon" id="sort-heure">↕</span></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- Cartes mobile -->
+<div class="cards-wrap" id="cards-wrap"></div>
+
+<div class="pagination" id="pagination"></div>
+
+<script>
+  let allData     = [];
+  let filtered    = [];
+  let sortField   = 'date';
+  let sortDir     = 'desc';
+  let currentPage = 1;
+  const PER_PAGE  = 20;
+
+  // ── Chargement ─────────────────────────────────────────────────────
+  async function loadData() {
+    try {
+      const res  = await fetch('/api/json');
+      allData    = await res.json();
+      applyFilters();
+    } catch (e) {
+      document.getElementById('results-info').textContent = 'Erreur de chargement.';
+    }
+  }
+
+  // ── Filtres ────────────────────────────────────────────────────────
+  function applyFilters() {
+    const q        = document.getElementById('search').value.toLowerCase().trim();
+    const dateFrom = document.getElementById('date-from').value;
+    const dateTo   = document.getElementById('date-to').value;
+
+    filtered = allData.filter(row => {
+      // Recherche texte
+      const matchText = !q || [row.nomprenom, row.email, row.montant, row.verificationcode]
+        .some(v => v?.toLowerCase().includes(q));
+
+      // Filtre date (format dd/mm/yyyy → yyyy-mm-dd pour comparaison)
+      let matchDate = true;
+      if (dateFrom || dateTo) {
+        const parts = (row.date || '').split('/');
+        const rowDate = parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : '';
+        if (dateFrom && rowDate < dateFrom) matchDate = false;
+        if (dateTo   && rowDate > dateTo)   matchDate = false;
+      }
+
+      return matchText && matchDate;
+    });
+
+   
+    // Tri
+    filtered.sort((a, b) => {
+      // Convertir dd/mm/yyyy en yyyy/mm/dd pour tri correct des dates
+      const toSortable = (row) => {
+        if (sortField === 'date') {
+          const parts = (row.date || '').split('/');
+          return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]} ${row.heure || ''}` : '';
+        }
+        return (row[sortField] || '').toLowerCase();
+      };
+
+      const va = toSortable(a);
+      const vb = toSortable(b);
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+    currentPage = 1;
+    render();
+  }
+
+  // ── Rendu ──────────────────────────────────────────────────────────
+  function render() {
+    const total  = filtered.length;
+    const start  = (currentPage - 1) * PER_PAGE;
+    const page   = filtered.slice(start, start + PER_PAGE);
+    const tbody  = document.getElementById('tbody');
+
+    document.getElementById('total-badge').textContent = `${allData.length} entrée(s)`;
+    document.getElementById('results-info').textContent =
+      total === 0 ? 'Aucun résultat.' : `${total} résultat(s) — page ${currentPage} / ${Math.ceil(total / PER_PAGE)}`;
+
+    if (page.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+        <strong>Aucune entrée trouvée</strong>
+        <p>Modifiez votre recherche ou réinitialisez les filtres.</p>
+      </div></td></tr>`;
+    } else {
+      tbody.innerHTML = page.map((row, i) => `
+        <tr>
+          <td class="date-cell">${start + i + 1}</td>
+          <td>${esc(row.nomprenom)}</td>
+          <td>${esc(row.email)}</td>
+          <td class="date-cell">${esc(row.montant)}</td>
+          <td class="code-cell">${esc(row.verificationcode)}</td>
+          <td class="date-cell">${esc(row.date)}</td>
+          <td class="date-cell">${esc(row.heure)}</td>
+        </tr>`).join('');
+    }
+
+    renderPagination(total);
+    renderCards(page, start);
+  }
+
+  function renderCards(page, start) {
+    const wrap = document.getElementById('cards-wrap');
+    if (page.length === 0) {
+      wrap.innerHTML = `<div class="empty-state">
+        <strong>Aucune entrée trouvée</strong>
+        <p>Modifiez votre recherche ou réinitialisez les filtres.</p>
+      </div>`;
+      return;
+    }
+    wrap.innerHTML = page.map((row, i) => `
+      <div class="card">
+        <div class="card-index">#${start + i + 1}</div>
+        <div class="card-header">
+          <div class="card-name">${esc(row.nomprenom)}</div>
+          <div class="card-datetime">
+            <div>${esc(row.date)}</div>
+            <div>${esc(row.heure)}</div>
+          </div>
+        </div>
+        <div class="card-email">${esc(row.email)}</div>
+        <div class="card-codes">
+          <div class="card-code-block">
+            <div class="card-code-label">Montant</div>
+            <div class="card-code-value">${esc(row.montant)}</div>
+          </div>
+          <div class="card-code-block">
+            <div class="card-code-label">Code ticket</div>
+            <div class="card-code-value">${esc(row.verificationcode)}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderPagination(total) {
+    const pages = Math.ceil(total / PER_PAGE);
+    const el    = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+
+    let html = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>‹</button>`;
+    for (let p = 1; p <= pages; p++) {
+      if (p === 1 || p === pages || Math.abs(p - currentPage) <= 2) {
+        html += `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+      } else if (Math.abs(p - currentPage) === 3) {
+        html += `<span style="padding:0 4px;color:var(--muted)">…</span>`;
+      }
+    }
+    html += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage === pages ? 'disabled' : ''}>›</button>`;
+    el.innerHTML = html;
+  }
+
+  function goPage(p) { currentPage = p; render(); window.scrollTo(0, 0); }
+
+  // ── Tri ────────────────────────────────────────────────────────────
+  function sortBy(field) {
+    if (sortField === field) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortField = field;
+      sortDir   = 'asc';
+    }
+    applyFilters();
+  }
+
+  // ── Reset ──────────────────────────────────────────────────────────
+  function resetFilters() {
+    document.getElementById('search').value   = '';
+    document.getElementById('date-from').value = '';
+    document.getElementById('date-to').value   = '';
+    applyFilters();
+  }
+
+  // ── Export CSV ─────────────────────────────────────────────────────
+  function exportCSV() {
+    const headers = ['Nom & Prénom', 'Email', 'Montant', 'Code ticket', 'Date', 'Heure'];
+    const rows    = filtered.map(r => [r.nomprenom, r.email, r.montant, r.verificationcode, r.date, r.heure]);
+    const csv     = [headers, ...rows].map(r => r.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob    = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url     = URL.createObjectURL(blob);
+    const a       = document.createElement('a');
+    a.href        = url;
+    a.download    = `verifications_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Événements ────────────────────────────────────────────────────
+  document.getElementById('search').addEventListener('input', applyFilters);
+  document.getElementById('date-from').addEventListener('change', applyFilters);
+  document.getElementById('date-to').addEventListener('change', applyFilters);
+
+  loadData();
+</script>
+</body>
+</html>

